@@ -159,6 +159,48 @@
             font-size: 0.8rem;
             text-align: center;
         }
+
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0;
+            }
+
+            .controls,
+            footer,
+            .checkbox:not(.checked) {
+                display: none !important;
+                /* 隱藏按鈕和沒勾選的框 */
+            }
+
+            .section {
+                background: white !important;
+                border: 1px solid #ccc !important;
+                break-inside: avoid;
+                /* 防止內容被切斷 */
+                color: black !important;
+                box-shadow: none !important;
+            }
+
+            .time-tag {
+                background: #eee !important;
+                color: black !important;
+                border: 1px solid #000 !important;
+            }
+
+            .notes-area {
+                background: white !important;
+                color: black !important;
+                border: none !important;
+                height: auto !important;
+            }
+
+            .checkbox.checked {
+                background: #4ade80 !important;
+                print-color-adjust: exact;
+            }
+        }
     </style>
 </head>
 
@@ -276,23 +318,9 @@
         }
 
         function downloadReport() {
-            // 1. 取得目前的 HTML 內容
-            // 我們複製一份目前的 document，這樣才不會影響到原本正在用的網頁
-            const htmlContent = document.documentElement.outerHTML;
-
-            // 2. 建立一個 Blob，類型設定為 HTML
-            const blob = new Blob([htmlContent], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-
-            // 3. 觸發下載
-            const a = document.createElement('a');
-            a.href = url;
-            // 檔名會變成：行程戰報_2026-3-31.html
-            a.download = `每日進度快照_${dateString.replace(/\//g, '-')}.html`;
-            a.click();
-
-            // 4. 釋放記憶體
-            URL.revokeObjectURL(url);
+            // 觸發瀏覽器的列印視窗
+            // 妳可以在彈出的視窗中選擇「另存為 PDF」
+            window.print();
         }
 
         renderSchedule();
