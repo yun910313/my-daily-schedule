@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 我的每日進度與存檔</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text-color: #f8fafc;
+            --accent-color: #38bdf8;
+            --success-color: #4ade80;
+            --download-color: #a855f7;
+        }
+
+        body {
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 650px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        button {
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        button.reset-btn { background: #ef4444; color: white; }
+        button.download-btn { background: var(--download-color); color: white; }
+        button:hover { opacity: 0.8; transform: translateY(-2px); }
+
+        .section {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: 0.3s;
+        }
+
+        .section.completed {
+            border-color: var(--success-color);
+            background: rgba(74, 222, 128, 0.05);
+        }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        .checkbox {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: 0.3s;
+        }
+
+        .checkbox.checked {
+            background: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .checkbox.checked::after {
+            content: '✓';
+            color: #0f172a;
+            font-weight: bold;
+        }
+
+        .time-tag {
+            background: var(--accent-color);
+            color: #0f172a;
+            padding: 2px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 800;
+        }
+
+        .title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            flex-grow: 1;
+        }
+
+        .notes-area {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            color: white;
+            margin-top: 15px;
+            font-size: 0.95rem;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+        footer {
+            margin-top: 40px;
+            opacity: 0.5;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>🧠 今日進度與備註</h1>
+            <p id="current-date"></p>
+        </header>
+
+        <div class="controls">
+            <button class="reset-btn" onclick="resetAll()">🧹 清除紀錄</button>
+            <button class="download-btn" onclick="downloadReport()">📥 下載今日戰報</button>
+        </div>
+
+        <div id="schedule-container"></div>
+
+        <footer>
+            Done is better than perfect. | You did great today!
+        </footer>
+    </div>
+
+    <script>
+        const scheduleData = [
+            { id: 'start', time: '09:00', title: '🌅 起床＋啟動(簡單整理、吃早餐
+不滑爆手機（很關鍵）
+快速看一下當天目標（3件事就好）
+)' },
+            { id: 'job', time: '10:00–12:00', title: '💼 求職主力時段(投履歷（客製化很重要）
+更新 LinkedIn / 人力銀行
+回覆面試通知
+查公司資料（不要亂投）
+)' },
+            { id: 'lunch', time: '12:00–13:30', title: '🍱 午餐＋放鬆' },
+            { id: 'skill', time: '13:30–16:00', title: '📚 技能升級時間(線上課（程式 / 語言 / 設計）
+做作品集
+看產業趨勢)' },
+            { id: 'network', time: '16:00–17:00', title: '☕ 輕鬆但有用(人脈經營（私訊朋友、前同事）
+看職缺市場變化
+整理今天投遞紀錄)' },
+            { id: 'sport', time: '17:30–18:30', title: '🏃 運動 / 出門' },
+            { id: 'night', time: '20:00–22:00', title: '🌙 彈性時間' }
+        ];
+
+        // 顯示今日日期
+        const today = new Date();
+        const dateString = `${today.getFullYear()}/${today.getMonth()+1}/${today.getDate()}`;
+        document.getElementById('current-date').innerText = `今天是 ${dateString}，加油！`;
+
+        function renderSchedule() {
+            const container = document.getElementById('schedule-container');
+            container.innerHTML = '';
+
+            scheduleData.forEach(item => {
+                const savedStatus = JSON.parse(localStorage.getItem(item.id)) || { checked: false, note: '' };
+                const section = document.createElement('div');
+                section.className = `section ${savedStatus.checked ? 'completed' : ''}`;
+                section.innerHTML = `
+                    <div class="header-row">
+                        <div class="checkbox ${savedStatus.checked ? 'checked' : ''}" onclick="toggleCheck('${item.id}')"></div>
+                        <span class="time-tag">${item.time}</span>
+                        <div class="title">${item.title}</div>
+                    </div>
+                    <textarea class="notes-area" 
+                        placeholder="點此輸入今日備註..." 
+                        oninput="saveNote('${item.id}', this.value)">${savedStatus.note}</textarea>
+                `;
+                container.appendChild(section);
+            });
+        }
+
+        function toggleCheck(id) {
+            const status = JSON.parse(localStorage.getItem(id)) || { checked: false, note: '' };
+            status.checked = !status.checked;
+            localStorage.setItem(id, JSON.stringify(status));
+            renderSchedule();
+        }
+
+        function saveNote(id, value) {
+            const status = JSON.parse(localStorage.getItem(id)) || { checked: false, note: '' };
+            status.note = value;
+            localStorage.setItem(id, JSON.stringify(status));
+        }
+
+        function resetAll() {
+            if(confirm('確定要清空嗎？建議下載紀錄後再清除唷！')) {
+                scheduleData.forEach(item => localStorage.removeItem(item.id));
+                renderSchedule();
+            }
+        }
+
+        function downloadReport() {
+            let content = `📅 行程戰報 - 日期: ${dateString}\n`;
+            content += `==============================\n\n`;
+
+            scheduleData.forEach(item => {
+                const data = JSON.parse(localStorage.getItem(item.id)) || { checked: false, note: '' };
+                const statusStr = data.checked ? '[V] 已完成' : '[ ] 未完成';
+                content += `${statusStr} ${item.time} ${item.title}\n`;
+                content += `📝 備註: ${data.note || '無'}\n`;
+                content += `------------------------------\n`;
+            });
+
+            content += `\n💪 Stay focused, stay hopeful!`;
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `行程戰報_${dateString.replace(/\//g, '-')}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        renderSchedule();
+    </script>
+</body>
+</html>
