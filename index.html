@@ -161,44 +161,34 @@
         }
 
         @media print {
-            body {
-                background: white !important;
-                color: black !important;
-                padding: 0;
-            }
-
-            .controls,
-            footer,
-            .checkbox:not(.checked) {
-                display: none !important;
-                /* 隱藏按鈕和沒勾選的框 */
-            }
+            /* ... 原本的設定 ... */
 
             .section {
-                background: white !important;
-                border: 1px solid #ccc !important;
-                break-inside: avoid;
-                /* 防止內容被切斷 */
-                color: black !important;
-                box-shadow: none !important;
-            }
-
-            .time-tag {
-                background: #eee !important;
-                color: black !important;
-                border: 1px solid #000 !important;
+                display: block !important;
+                /* 確保所有時段都顯示 */
+                page-break-inside: avoid;
+                margin-bottom: 20px !important;
+                border-bottom: 1px solid #eee !important;
+                padding-bottom: 10px !important;
             }
 
             .notes-area {
-                background: white !important;
-                color: black !important;
+                display: block !important;
+                width: 100% !important;
                 border: none !important;
+                background: transparent !important;
+                color: #333 !important;
+                overflow: visible !important;
+                /* 讓文字多少就顯示多少，不被切斷 */
                 height: auto !important;
+                min-height: 20px;
+                font-size: 1rem !important;
             }
 
-            .checkbox.checked {
-                background: #4ade80 !important;
-                print-color-adjust: exact;
+            /* 隱藏沒必要的空白 */
+            .checkbox:not(.checked) {
+                opacity: 0.3;
+                /* 沒完成的變淡，而不是直接消失，這樣才知道還有什麼沒做 */
             }
         }
     </style>
