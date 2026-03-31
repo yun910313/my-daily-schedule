@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧠 我的每日進度與存檔</title>
+    <title>🧠 我的時光進度表</title>
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
@@ -34,7 +34,30 @@
 
         header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+        }
+
+        /* 日期選擇器樣式 */
+        .date-selector {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            border: 1px solid var(--accent-color);
+        }
+
+        input[type="date"] {
+            background: #0f172a;
+            color: white;
+            border: 1px solid var(--accent-color);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
         }
 
         .controls {
@@ -137,7 +160,6 @@
             color: #94a3b8;
             margin: 8px 0 8px 45px;
             white-space: pre-line;
-            /* 關鍵：讓文字可以正確換行 */
         }
 
         .notes-area {
@@ -160,35 +182,30 @@
             text-align: center;
         }
 
+        /* 列印優化 */
         @media print {
-            /* ... 原本的設定 ... */
+
+            .date-selector,
+            .controls,
+            footer {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+                color: black;
+            }
 
             .section {
-                display: block !important;
-                /* 確保所有時段都顯示 */
-                page-break-inside: avoid;
-                margin-bottom: 20px !important;
-                border-bottom: 1px solid #eee !important;
-                padding-bottom: 10px !important;
+                border: 1px dotted #ccc !important;
+                background: white !important;
+                color: black !important;
             }
 
             .notes-area {
-                display: block !important;
-                width: 100% !important;
                 border: none !important;
+                color: black !important;
                 background: transparent !important;
-                color: #333 !important;
-                overflow: visible !important;
-                /* 讓文字多少就顯示多少，不被切斷 */
-                height: auto !important;
-                min-height: 20px;
-                font-size: 1rem !important;
-            }
-
-            /* 隱藏沒必要的空白 */
-            .checkbox:not(.checked) {
-                opacity: 0.3;
-                /* 沒完成的變淡，而不是直接消失，這樣才知道還有什麼沒做 */
             }
         }
     </style>
@@ -198,78 +215,55 @@
 
     <div class="container">
         <header>
-            <h1>🧠 今日進度與備註</h1>
-            <p id="current-date"></p>
+            <h1>🧠 我的時光進度表</h1>
         </header>
 
+        <div class="date-selector">
+            <span>📅 查看日期：</span>
+            <input type="date" id="date-picker" onchange="changeDate()">
+        </div>
+
         <div class="controls">
-            <button class="reset-btn" onclick="resetAll()">🧹 清除紀錄</button>
-            <button class="download-btn" onclick="downloadReport()">📥 下載今日戰報</button>
+            <button class="reset-btn" onclick="resetDay()">🧹 清除這天</button>
+            <button class="download-btn" onclick="downloadPDF()">📥 下載 PDF 戰報</button>
         </div>
 
         <div id="schedule-container"></div>
 
         <footer>
-            Done is better than perfect. | You did great today!
+            Data is stored by date in your browser. ✨
         </footer>
     </div>
 
     <script>
         const scheduleData = [
-            {
-                id: 'start',
-                time: '09:00',
-                title: '🌅 起床＋啟動',
-                desc: '• 簡單整理、吃早餐\n• 不滑爆手機\n• 確認當天目標'
-            },
-            {
-                id: 'job',
-                time: '10:00–12:00',
-                title: '💼 求職主力時段',
-                desc: '• 投遞履歷、更新 LinkedIn\n• 回覆面試通知、查資料'
-            },
-            {
-                id: 'lunch',
-                time: '12:00–13:30',
-                title: '🍱 午餐＋放鬆',
-                desc: '• 建議出門走走，呼吸新鮮空氣'
-            },
-            {
-                id: 'skill',
-                time: '13:30–16:00',
-                title: '📚 技能升級時間',
-                desc: '• 線上課、做作品集、看趨勢'
-            },
-            {
-                id: 'network',
-                time: '16:00–17:00',
-                title: '☕ 輕鬆但有用',
-                desc: '• 人脈經營、整理投遞紀錄'
-            },
-            {
-                id: 'sport',
-                time: '17:30–18:30',
-                title: '🏃 運動 / 出門',
-                desc: '• 散步或健身，趕走 emo'
-            },
-            {
-                id: 'night',
-                time: '20:00–22:00',
-                title: '🌙 彈性時間',
-                desc: '• 面試準備、接案或徹底放鬆'
-            }
+            { id: 'start', time: '09:00', title: '🌅 起床＋啟動', desc: '• 整理、早餐\n• 不滑手機\n• 定目標' },
+            { id: 'job', time: '10:00–12:00', title: '💼 求職主力', desc: '• 投履歷、LinkedIn\n• 回覆面試、查資料' },
+            { id: 'lunch', time: '12:00–13:30', title: '🍱 午休', desc: '• 出門走走' },
+            { id: 'skill', time: '13:30–16:00', title: '📚 技能升級', desc: '• 線上課、作品集' },
+            { id: 'network', time: '16:00–17:00', title: '☕ 輕鬆經營', desc: '• 人脈、整理紀錄' },
+            { id: 'sport', time: '17:30–18:30', title: '🏃 運動', desc: '• 健身散步、趕走 emo' },
+            { id: 'night', time: '20:00–22:00', title: '🌙 彈性時間', desc: '• 準備面試、放鬆' }
         ];
 
-        const today = new Date();
-        const dateString = `${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()}`;
-        document.getElementById('current-date').innerText = `今天是 ${dateString}，加油！`;
+        // 初始化日期為今天
+        let selectedDate = new Date().toISOString().split('T')[0];
+        document.getElementById('date-picker').value = selectedDate;
+
+        function changeDate() {
+            selectedDate = document.getElementById('date-picker').value;
+            renderSchedule();
+        }
 
         function renderSchedule() {
             const container = document.getElementById('schedule-container');
             container.innerHTML = '';
 
             scheduleData.forEach(item => {
-                const savedStatus = JSON.parse(localStorage.getItem(item.id)) || { checked: false, note: '' };
+                // 用 "日期_id" 當作 Key
+                const key = `${selectedDate}_${item.id}`;
+                const savedStatus = JSON.parse(localStorage.getItem(key)) || { checked: false, note: '' };
+
                 const section = document.createElement('div');
                 section.className = `section ${savedStatus.checked ? 'completed' : ''}`;
                 section.innerHTML = `
@@ -280,7 +274,8 @@
                     </div>
                     <div class="detail-list">${item.desc}</div>
                     <textarea class="notes-area" 
-                        placeholder="點此輸入今日備註..." 
+                        id="note-${item.id}"
+                        placeholder="那天的紀錄..." 
                         oninput="saveNote('${item.id}', this.value)">${savedStatus.note}</textarea>
                 `;
                 container.appendChild(section);
@@ -288,28 +283,30 @@
         }
 
         function toggleCheck(id) {
-            const status = JSON.parse(localStorage.getItem(id)) || { checked: false, note: '' };
+            const key = `${selectedDate}_${id}`;
+            const status = JSON.parse(localStorage.getItem(key)) || { checked: false, note: '' };
             status.checked = !status.checked;
-            localStorage.setItem(id, JSON.stringify(status));
+            localStorage.setItem(key, JSON.stringify(status));
             renderSchedule();
         }
 
         function saveNote(id, value) {
-            const status = JSON.parse(localStorage.getItem(id)) || { checked: false, note: '' };
+            const key = `${selectedDate}_${id}`;
+            const status = JSON.parse(localStorage.getItem(key)) || { checked: false, note: '' };
             status.note = value;
-            localStorage.setItem(id, JSON.stringify(status));
+            localStorage.setItem(key, JSON.stringify(status));
         }
 
-        function resetAll() {
-            if (confirm('確定要清空嗎？建議下載紀錄後再清除唷！')) {
-                scheduleData.forEach(item => localStorage.removeItem(item.id));
+        function resetDay() {
+            if (confirm(`確定要清除 ${selectedDate} 的紀錄嗎？`)) {
+                scheduleData.forEach(item => {
+                    localStorage.removeItem(`${selectedDate}_${item.id}`);
+                });
                 renderSchedule();
             }
         }
 
-        function downloadReport() {
-            // 觸發瀏覽器的列印視窗
-            // 妳可以在彈出的視窗中選擇「另存為 PDF」
+        function downloadPDF() {
             window.print();
         }
 
