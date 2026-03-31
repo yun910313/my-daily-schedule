@@ -3,117 +3,182 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧠 我的時光進度表</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>📅 妳的專屬時光看板</title>
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --bg-color: #0f172a;
+            --sidebar-bg: #1e293b;
             --card-bg: rgba(255, 255, 255, 0.05);
             --text-color: #f8fafc;
             --accent-color: #38bdf8;
             --success-color: #4ade80;
-            --download-color: #a855f7;
+            --danger-color: #ef4444;
+        }
+
+        /* 基礎設定 */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-            background: var(--bg-gradient);
-            background-attachment: fixed;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at top right, #1e293b, #0f172a);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- 漢堡按鈕 (Mobile Only) --- */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1001;
+            background: var(--accent-color);
+            color: #0f172a;
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 800;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+        }
+
+        /* --- 側邊欄 --- */
+        .sidebar {
+            width: 320px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 1000;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+        }
+
+        /* --- 主內容區 --- */
+        .main-content {
+            flex-grow: 1;
+            margin-left: 320px;
+            padding: 2rem;
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-
-        .container {
-            max-width: 650px;
+            transition: all 0.3s ease;
             width: 100%;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 20px;
+        .content-container {
+            width: 100%;
+            max-width: 700px;
         }
 
-        /* 日期選擇器樣式 */
-        .date-selector {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 25px;
+        h1 {
+            font-size: 1.75rem;
+            margin-bottom: 2rem;
+            color: var(--accent-color);
+        }
+
+        /* --- 日曆樣式 --- */
+        .calendar-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.2rem;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            margin-bottom: 1.5rem;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+        }
+
+        .day-label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            padding-bottom: 5px;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px;
-            border: 1px solid var(--accent-color);
-        }
-
-        input[type="date"] {
-            background: #0f172a;
-            color: white;
-            border: 1px solid var(--accent-color);
-            padding: 8px;
-            border-radius: 8px;
-            font-size: 1rem;
+            border-radius: 10px;
             cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.2s;
         }
 
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            gap: 10px;
+        .day-cell:hover {
+            background: rgba(56, 189, 248, 0.15);
         }
 
-        button {
-            border: none;
-            padding: 10px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+        .day-cell.selected {
+            background: var(--accent-color);
+            color: #0f172a;
+            font-weight: 800;
         }
 
-        button.reset-btn {
-            background: #ef4444;
-            color: white;
+        .day-cell.today {
+            outline: 2px solid var(--success-color);
+            outline-offset: -2px;
         }
 
-        button.download-btn {
-            background: var(--download-color);
-            color: white;
-        }
-
-        button:hover {
-            opacity: 0.8;
-            transform: translateY(-2px);
-        }
-
+        /* --- 行程卡片 --- */
         .section {
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
             border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: 0.3s;
+            padding: 1.5rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .section.completed {
             border-color: var(--success-color);
-            background: rgba(74, 222, 128, 0.05);
+            background: rgba(74, 222, 128, 0.03);
         }
 
         .header-row {
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 12px;
+            gap: 1rem;
+        }
+
+        /* 加大 Checkbox 點擊區域 */
+        .checkbox-wrapper {
+            padding: 5px;
+            cursor: pointer;
         }
 
         .checkbox {
@@ -121,12 +186,10 @@
             height: 28px;
             border-radius: 50%;
             border: 2px solid var(--accent-color);
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
-            transition: 0.3s;
+            transition: 0.2s;
         }
 
         .checkbox.checked {
@@ -137,75 +200,143 @@
         .checkbox.checked::after {
             content: '✓';
             color: #0f172a;
-            font-weight: bold;
+            font-weight: 900;
         }
 
         .time-tag {
             background: var(--accent-color);
             color: #0f172a;
-            padding: 2px 10px;
-            border-radius: 6px;
-            font-size: 0.85rem;
+            padding: 4px 12px;
+            border-radius: 8px;
             font-weight: 800;
+            font-size: 0.8rem;
         }
 
-        .title {
-            font-size: 1.1rem;
-            font-weight: bold;
-            flex-grow: 1;
-        }
-
-        .detail-list {
-            font-size: 0.9rem;
-            color: #94a3b8;
-            margin: 8px 0 8px 45px;
-            white-space: pre-line;
+        .item-title {
+            font-size: 1.05rem;
+            font-weight: 600;
         }
 
         .notes-area {
             width: 100%;
-            background: rgba(0, 0, 0, 0.2);
+            min-height: 80px;
+            background: rgba(0, 0, 0, 0.25);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 12px;
+            border-radius: 12px;
+            padding: 1rem;
             color: white;
-            margin-top: 15px;
-            font-size: 0.95rem;
-            resize: vertical;
-            box-sizing: border-box;
+            margin-top: 1rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            outline: none;
         }
 
-        footer {
-            margin-top: 40px;
-            opacity: 0.5;
-            font-size: 0.8rem;
-            text-align: center;
+        .notes-area:focus {
+            border-color: var(--accent-color);
         }
 
-        /* 列印優化 */
+        /* 按鈕組 */
+        .btn-group {
+            margin-top: auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.8rem;
+        }
+
+        button.action-btn {
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .print-btn {
+            background: #a855f7;
+            color: white;
+        }
+
+        .reset-btn {
+            background: var(--danger-color);
+            color: white;
+            opacity: 0.9;
+        }
+
+        /* --- 響應式調整 --- */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 280px;
+            }
+
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                width: 300px;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .overlay.active {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 5rem 1rem 2rem 1rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                text-align: center;
+            }
+        }
+
         @media print {
 
-            .date-selector,
-            .controls,
-            footer {
+            .sidebar,
+            .menu-toggle,
+            .overlay {
                 display: none !important;
             }
 
             body {
-                background: white;
-                color: black;
+                background: white !important;
+                color: black !important;
+                display: block;
+            }
+
+            .main-content {
+                margin: 0;
+                padding: 0;
+                width: 100%;
             }
 
             .section {
-                border: 1px dotted #ccc !important;
+                border: 1px solid #ddd !important;
                 background: white !important;
-                color: black !important;
+                page-break-inside: avoid;
             }
 
             .notes-area {
-                border: none !important;
                 color: black !important;
                 background: transparent !important;
+                border: none !important;
             }
         }
     </style>
@@ -213,103 +344,137 @@
 
 <body>
 
-    <div class="container">
-        <header>
-            <h1>🧠 我的時光進度表</h1>
-        </header>
+    <button class="menu-toggle" onclick="toggleMenu()" aria-label="開啟選單">☰ 選單</button>
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
-        <div class="date-selector">
-            <span>📅 查看日期：</span>
-            <input type="date" id="date-picker" onchange="changeDate()">
+    <aside class="sidebar" id="sidebar">
+        <h2 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+            <span>📅</span> 時光看板
+        </h2>
+
+        <div class="calendar-card">
+            <div class="calendar-header">
+                <button onclick="prevMonth()"
+                    style="background:none; border:none; color:white; cursor:pointer; padding:10px;">&lt;</button>
+                <span id="month-year-label"></span>
+                <button onclick="nextMonth()"
+                    style="background:none; border:none; color:white; cursor:pointer; padding:10px;">&gt;</button>
+            </div>
+            <div class="calendar-grid" id="calendar-grid"></div>
         </div>
 
-        <div class="controls">
-            <button class="reset-btn" onclick="resetDay()">🧹 清除這天</button>
-            <button class="download-btn" onclick="downloadPDF()">📥 下載 PDF 戰報</button>
+        <div class="btn-group">
+            <button class="action-btn print-btn" onclick="window.print()">📥 匯出 PDF</button>
+            <button class="action-btn reset-btn" onclick="resetDay()">🧹 清除紀錄</button>
         </div>
+    </aside>
 
-        <div id="schedule-container"></div>
-
-        <footer>
-            Data is stored by date in your browser. ✨
-        </footer>
-    </div>
+    <main class="main-content">
+        <div class="content-container">
+            <h1 id="display-date">載入中...</h1>
+            <div id="schedule-container"></div>
+        </div>
+    </main>
 
     <script>
         const scheduleData = [
-            { id: 'start', time: '09:00', title: '🌅 起床＋啟動', desc: '• 整理、早餐\n• 不滑手機\n• 定目標' },
-            { id: 'job', time: '10:00–12:00', title: '💼 求職主力', desc: '• 投履歷、LinkedIn\n• 回覆面試、查資料' },
-            { id: 'lunch', time: '12:00–13:30', title: '🍱 午休', desc: '• 出門走走' },
-            { id: 'skill', time: '13:30–16:00', title: '📚 技能升級', desc: '• 線上課、作品集' },
-            { id: 'network', time: '16:00–17:00', title: '☕ 輕鬆經營', desc: '• 人脈、整理紀錄' },
-            { id: 'sport', time: '17:30–18:30', title: '🏃 運動', desc: '• 健身散步、趕走 emo' },
-            { id: 'night', time: '20:00–22:00', title: '🌙 彈性時間', desc: '• 準備面試、放鬆' }
+            { id: 'start', time: '09:00', title: '🌅 起床＋啟動' },
+            { id: 'job', time: '10:00', title: '💼 求職主力時段' },
+            { id: 'lunch', time: '12:00', title: '🍱 午休放鬆' },
+            { id: 'skill', time: '13:30', title: '📚 技能升級時段' },
+            { id: 'sport', time: '17:30', title: '🏃 運動 / 散步' }
         ];
 
-        // 初始化日期為今天
-        let selectedDate = new Date().toISOString().split('T')[0];
-        document.getElementById('date-picker').value = selectedDate;
+        let currentNavDate = new Date();
+        let selectedDateStr = new Date().toISOString().split('T')[0];
 
-        function changeDate() {
-            selectedDate = document.getElementById('date-picker').value;
-            renderSchedule();
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            const label = document.getElementById('month-year-label');
+            grid.innerHTML = '';
+            const year = currentNavDate.getFullYear();
+            const month = currentNavDate.getMonth();
+            label.innerText = `${year} / ${month + 1}`;
+
+            ['日', '一', '二', '三', '四', '五', '六'].forEach(d => {
+                const el = document.createElement('div');
+                el.className = 'day-label'; el.innerText = d;
+                grid.appendChild(el);
+            });
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const cell = document.createElement('div');
+                cell.className = `day-cell ${dateStr === selectedDateStr ? 'selected' : ''}`;
+                if (dateStr === new Date().toISOString().split('T')[0]) cell.classList.add('today');
+                cell.innerText = d;
+                cell.onclick = () => {
+                    selectedDateStr = dateStr;
+                    renderCalendar();
+                    renderSchedule();
+                    if (window.innerWidth <= 992) toggleMenu();
+                };
+                grid.appendChild(cell);
+            }
         }
 
         function renderSchedule() {
+            document.getElementById('display-date').innerText = `📅 ${selectedDateStr}`;
             const container = document.getElementById('schedule-container');
             container.innerHTML = '';
-
             scheduleData.forEach(item => {
-                // 用 "日期_id" 當作 Key
-                const key = `${selectedDate}_${item.id}`;
-                const savedStatus = JSON.parse(localStorage.getItem(key)) || { checked: false, note: '' };
-
+                const key = `${selectedDateStr}_${item.id}`;
+                const data = JSON.parse(localStorage.getItem(key)) || { checked: false, note: '' };
                 const section = document.createElement('div');
-                section.className = `section ${savedStatus.checked ? 'completed' : ''}`;
+                section.className = `section ${data.checked ? 'completed' : ''}`;
                 section.innerHTML = `
                     <div class="header-row">
-                        <div class="checkbox ${savedStatus.checked ? 'checked' : ''}" onclick="toggleCheck('${item.id}')"></div>
+                        <div class="checkbox-wrapper" onclick="toggleCheck('${item.id}')">
+                            <div class="checkbox ${data.checked ? 'checked' : ''}"></div>
+                        </div>
                         <span class="time-tag">${item.time}</span>
-                        <div class="title">${item.title}</div>
+                        <span class="item-title">${item.title}</span>
                     </div>
-                    <div class="detail-list">${item.desc}</div>
-                    <textarea class="notes-area" 
-                        id="note-${item.id}"
-                        placeholder="那天的紀錄..." 
-                        oninput="saveNote('${item.id}', this.value)">${savedStatus.note}</textarea>
+                    <textarea class="notes-area" placeholder="紀錄今天的點滴..." oninput="saveNote('${item.id}', this.value)">${data.note}</textarea>
                 `;
                 container.appendChild(section);
             });
         }
 
         function toggleCheck(id) {
-            const key = `${selectedDate}_${id}`;
-            const status = JSON.parse(localStorage.getItem(key)) || { checked: false, note: '' };
-            status.checked = !status.checked;
-            localStorage.setItem(key, JSON.stringify(status));
+            const key = `${selectedDateStr}_${id}`;
+            const data = JSON.parse(localStorage.getItem(key)) || { checked: false, note: '' };
+            data.checked = !data.checked;
+            localStorage.setItem(key, JSON.stringify(data));
             renderSchedule();
         }
 
-        function saveNote(id, value) {
-            const key = `${selectedDate}_${id}`;
-            const status = JSON.parse(localStorage.getItem(key)) || { checked: false, note: '' };
-            status.note = value;
-            localStorage.setItem(key, JSON.stringify(status));
+        function saveNote(id, val) {
+            const key = `${selectedDateStr}_${id}`;
+            const data = JSON.parse(localStorage.getItem(key)) || { checked: false, note: '' };
+            data.note = val;
+            localStorage.setItem(key, JSON.stringify(data));
         }
 
+        function prevMonth() { currentNavDate.setMonth(currentNavDate.getMonth() - 1); renderCalendar(); }
+        function nextMonth() { currentNavDate.setMonth(currentNavDate.getMonth() + 1); renderCalendar(); }
         function resetDay() {
-            if (confirm(`確定要清除 ${selectedDate} 的紀錄嗎？`)) {
-                scheduleData.forEach(item => {
-                    localStorage.removeItem(`${selectedDate}_${item.id}`);
-                });
+            if (confirm(`確定清除 ${selectedDateStr} 紀錄？`)) {
+                scheduleData.forEach(item => localStorage.removeItem(`${selectedDateStr}_${item.id}`));
                 renderSchedule();
             }
         }
 
-        function downloadPDF() {
-            window.print();
-        }
-
+        renderCalendar();
         renderSchedule();
     </script>
 </body>
