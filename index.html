@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -55,9 +56,20 @@
             gap: 5px;
         }
 
-        button.reset-btn { background: #ef4444; color: white; }
-        button.download-btn { background: var(--download-color); color: white; }
-        button:hover { opacity: 0.8; transform: translateY(-2px); }
+        button.reset-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        button.download-btn {
+            background: var(--download-color);
+            color: white;
+        }
+
+        button:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
 
         .section {
             background: var(--card-bg);
@@ -120,6 +132,14 @@
             flex-grow: 1;
         }
 
+        .detail-list {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin: 8px 0 8px 45px;
+            white-space: pre-line;
+            /* 關鍵：讓文字可以正確換行 */
+        }
+
         .notes-area {
             width: 100%;
             background: rgba(0, 0, 0, 0.2);
@@ -141,6 +161,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="container">
@@ -163,29 +184,52 @@
 
     <script>
         const scheduleData = [
-            { id: 'start', time: '09:00', title: '🌅 起床＋啟動(簡單整理、吃早餐
-不滑爆手機（很關鍵）
-快速看一下當天目標（3件事就好）
-)' },
-            { id: 'job', time: '10:00–12:00', title: '💼 求職主力時段(投履歷（客製化很重要）
-更新 LinkedIn / 人力銀行
-回覆面試通知
-查公司資料（不要亂投）
-)' },
-            { id: 'lunch', time: '12:00–13:30', title: '🍱 午餐＋放鬆' },
-            { id: 'skill', time: '13:30–16:00', title: '📚 技能升級時間(線上課（程式 / 語言 / 設計）
-做作品集
-看產業趨勢)' },
-            { id: 'network', time: '16:00–17:00', title: '☕ 輕鬆但有用(人脈經營（私訊朋友、前同事）
-看職缺市場變化
-整理今天投遞紀錄)' },
-            { id: 'sport', time: '17:30–18:30', title: '🏃 運動 / 出門' },
-            { id: 'night', time: '20:00–22:00', title: '🌙 彈性時間' }
+            {
+                id: 'start',
+                time: '09:00',
+                title: '🌅 起床＋啟動',
+                desc: '• 簡單整理、吃早餐\n• 不滑爆手機（很關鍵）\n• 快速看一下當天目標（3件事就好）'
+            },
+            {
+                id: 'job',
+                time: '10:00–12:00',
+                title: '💼 求職主力時段',
+                desc: '• 投履歷（客製化很重要）\n• 更新 LinkedIn / 人力銀行\n• 回覆面試通知\n• 查公司資料（不要亂投）'
+            },
+            {
+                id: 'lunch',
+                time: '12:00–13:30',
+                title: '🍱 午餐＋放鬆',
+                desc: '• 建議出門走一下，避免整天關在家'
+            },
+            {
+                id: 'skill',
+                time: '13:30–16:00',
+                title: '📚 技能升級時間',
+                desc: '• 線上課（程式 / 語言 / 設計）\n• 做作品集\n• 看產業趨勢'
+            },
+            {
+                id: 'network',
+                time: '16:00–17:00',
+                title: '☕ 輕鬆但有用',
+                desc: '• 人脈經營（私訊朋友、前同事）\n• 看職缺市場變化\n• 整理今天投遞紀錄'
+            },
+            {
+                id: 'sport',
+                time: '17:30–18:30',
+                title: '🏃 運動 / 出門',
+                desc: '• 散步、健身、打球都可以\n• 不然會很容易 emo（真的）'
+            },
+            {
+                id: 'night',
+                time: '20:00–22:00',
+                title: '🌙 彈性時間',
+                desc: '• 準備面試 / 副業接案 / 徹底放鬆（三選一）'
+            }
         ];
 
-        // 顯示今日日期
         const today = new Date();
-        const dateString = `${today.getFullYear()}/${today.getMonth()+1}/${today.getDate()}`;
+        const dateString = `${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()}`;
         document.getElementById('current-date').innerText = `今天是 ${dateString}，加油！`;
 
         function renderSchedule() {
@@ -202,6 +246,7 @@
                         <span class="time-tag">${item.time}</span>
                         <div class="title">${item.title}</div>
                     </div>
+                    <div class="detail-list">${item.desc}</div>
                     <textarea class="notes-area" 
                         placeholder="點此輸入今日備註..." 
                         oninput="saveNote('${item.id}', this.value)">${savedStatus.note}</textarea>
@@ -224,7 +269,7 @@
         }
 
         function resetAll() {
-            if(confirm('確定要清空嗎？建議下載紀錄後再清除唷！')) {
+            if (confirm('確定要清空嗎？建議下載紀錄後再清除唷！')) {
                 scheduleData.forEach(item => localStorage.removeItem(item.id));
                 renderSchedule();
             }
@@ -238,6 +283,7 @@
                 const data = JSON.parse(localStorage.getItem(item.id)) || { checked: false, note: '' };
                 const statusStr = data.checked ? '[V] 已完成' : '[ ] 未完成';
                 content += `${statusStr} ${item.time} ${item.title}\n`;
+                content += `任務內容：\n${item.desc}\n`;
                 content += `📝 備註: ${data.note || '無'}\n`;
                 content += `------------------------------\n`;
             });
@@ -256,4 +302,5 @@
         renderSchedule();
     </script>
 </body>
+
 </html>
