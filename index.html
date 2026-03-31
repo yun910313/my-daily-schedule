@@ -276,26 +276,22 @@
         }
 
         function downloadReport() {
-            let content = `📅 行程戰報 - 日期: ${dateString}\n`;
-            content += `==============================\n\n`;
+            // 1. 取得目前的 HTML 內容
+            // 我們複製一份目前的 document，這樣才不會影響到原本正在用的網頁
+            const htmlContent = document.documentElement.outerHTML;
 
-            scheduleData.forEach(item => {
-                const data = JSON.parse(localStorage.getItem(item.id)) || { checked: false, note: '' };
-                const statusStr = data.checked ? '[V] 已完成' : '[ ] 未完成';
-                content += `${statusStr} ${item.time} ${item.title}\n`;
-                content += `任務內容：\n${item.desc}\n`;
-                content += `📝 備註: ${data.note || '無'}\n`;
-                content += `------------------------------\n`;
-            });
-
-            content += `\n💪 Stay focused, stay hopeful!`;
-
-            const blob = new Blob([content], { type: 'text/plain' });
+            // 2. 建立一個 Blob，類型設定為 HTML
+            const blob = new Blob([htmlContent], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
+
+            // 3. 觸發下載
             const a = document.createElement('a');
             a.href = url;
-            a.download = `行程戰報_${dateString.replace(/\//g, '-')}.txt`;
+            // 檔名會變成：行程戰報_2026-3-31.html
+            a.download = `每日進度快照_${dateString.replace(/\//g, '-')}.html`;
             a.click();
+
+            // 4. 釋放記憶體
             URL.revokeObjectURL(url);
         }
 
